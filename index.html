@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptCraft AI - Optimize Your App Prompts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .api-status-active {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .api-status-inactive {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+        .api-status-limit {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12 fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+                <i class="fas fa-robot mr-4"></i>PromptCraft AI
+            </h1>
+            <p class="text-xl text-white/80 max-w-2xl mx-auto">
+                Transform basic ideas into structured JSON prompts optimized for AI app development
+            </p>
+        </header>
+
+        <!-- API Key Section -->
+        <div class="max-w-2xl mx-auto mb-8">
+            <div class="glass-effect rounded-2xl p-6 fade-in">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex-1 w-full">
+                        <label class="block text-white font-medium mb-2">AI API Key</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="apiKey"
+                                value="sk-ijklmnopqrstuvwxijklmnopqrstuvwxijklmnop"
+                                class="w-full p-3 pr-24 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                                placeholder="Enter your API key"
+                            />
+                            <button 
+                                id="toggleKeyVisibility"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                            >
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="apiStatus" class="api-status-inactive px-4 py-2 rounded-full text-white font-medium mb-2">
+                            <i class="fas fa-circle mr-2"></i>Inactive
+                        </div>
+                        <button 
+                            id="validateApiKey"
+                            class="bg-white text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition-colors"
+                        >
+                            Validate Key
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4 text-white/70 text-sm">
+                    <p><i class="fas fa-info-circle mr-2"></i>Your API key is stored locally and never sent to our servers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto">
+            <!-- Input Section -->
+            <div class="glass-effect rounded-2xl p-8 mb-8 fade-in">
+                <h2 class="text-2xl font-semibold text-white mb-6">
+                    <i class="fas fa-keyboard mr-2"></i>Start with Your Basic Prompt
+                </h2>
+                <textarea 
+                    id="basicPrompt"
+                    placeholder="Describe your app idea here... (e.g., 'I want a task management app with user authentication and real-time updates')"
+                    class="w-full h-32 p-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-white/50"
+                ></textarea>
+                <button 
+                    id="analyzeBtn"
+                    class="mt-4 bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-white/90 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    disabled
+                >
+                    <i class="fas fa-magic mr-2"></i>Optimize Prompt
+                </button>
+            </div>
+
+            <!-- Questions Section -->
+            <div id="questionsSection" class="glass-effect rounded-2xl p-8 mb-8 hidden fade-in">
+                <h2 class="text-2xl font-semibold text-white mb-6">
+                    <i class="fas fa-question-circle mr-2"></i>Let's Refine Your App
+                </h2>
+                <div id="questionsContainer" class="space-y-6"></div>
+                <div id="validationMessage" class="mt-4 text-red-300 hidden">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span id="validationText"></span>
+                </div>
+                <button 
+                    id="generateJsonBtn"
+                    class="mt-6 bg-green-500 text-white px-8 py-3 rounded-xl font-semibold hover:bg-green-600 transition-all duration-300 hidden"
+                >
+                    <i class="fas fa-code mr-2"></i>Generate JSON Prompt
+                </button>
+            </div>
+
+            <!-- JSON Output Section -->
+            <div id="jsonOutputSection" class="glass-effect rounded-2xl p-8 hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold text-white">
+                        <i class="fas fa-file-code mr-2"></i>Optimized JSON Prompt
+                    </h2>
+                    <div class="flex gap-2">
+                        <button 
+                            id="regenerateJsonBtn"
+                            class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                        >
+                            <i class="fas fa-sync-alt mr-2"></i>Regenerate
+                        </button>
+                        <button 
+                            id="copyJsonBtn"
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            <i class="fas fa-copy mr-2"></i>Copy JSON
+                        </button>
+                    </div>
+                </div>
+                <pre id="jsonOutput" class="bg-gray-900 rounded-xl p-6 text-green-400 overflow-x-auto text-sm"></pre>
+                
+                <!-- App Preview -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold text-white mb-4">
+                        <i class="fas fa-eye mr-2"></i>App Structure Preview
+                    </h3>
+                    <div id="appPreview" class="bg-white/10 rounded-xl p-6 text-white"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Question templates for different app types
+        const questionTemplates = {
+            general: [
+                {
+                    id: 'app_type',
+                    question: 'What type of application are you building?',
+                    type: 'select',
+                    options: ['Web App', 'Mobile App', 'Desktop App', 'API Service', 'Chrome Extension', 'Other'],
+                    required: true
+                },
+                {
+                    id: 'target_users',
+                    question: 'Who are your target users?',
+                    type: 'text',
+                    placeholder: 'e.g., Students, Businesses, Developers, General Users',
+                    required: true
+                },
+                {
+                    id: 'key_features',
+                    question: 'What are the key features you want to include?',
+                    type: 'textarea',
+                    placeholder: 'Describe the main functionality...',
+                    required: true
+                }
+            ],
+            technical: [
+                {
+                    id: 'tech_stack',
+                    question: 'Preferred technology stack?',
+                    type: 'multiselect',
+                    options: ['React', 'Vue', 'Angular', 'Node.js', 'Python', 'React Native', 'Flutter', 'Firebase', 'MongoDB', 'PostgreSQL'],
+                    required: false
+                },
+                {
+                    id: 'authentication',
+                    question: 'Do you need user authentication?',
+                    type: 'select',
+                    options: ['Yes - Email/Password', 'Yes - Social Login', 'No', 'Maybe later'],
+                    required: true
+                },
+                {
+                    id: 'data_storage',
+                    question: 'What kind of data storage do you need?',
+                    type: 'select',
+                    options: ['Local Storage', 'Cloud Database', 'File Storage', 'Real-time Database', 'Not sure'],
+                    required: true
+                }
+            ],
+            design: [
+                {
+                    id: 'ui_style',
+                    question: 'What UI style do you prefer?',
+                    type: 'select',
+                    options: ['Modern Minimal', 'Professional', 'Playful/Fun', 'Dark Theme', 'Material Design', 'Custom'],
+                    required: false
+                },
+                {
+                    id: 'complexity',
+                    question: 'How complex should the user interface be?',
+                    type: 'select',
+                    options: ['Simple (few screens)', 'Moderate (5-10 screens)', 'Complex (many features and screens)'],
+                    required: true
+                }
+            ]
+        };
+
+        let currentAnswers = {};
+        let apiKeyStatus = 'inactive'; // inactive, active, limit
+
+        // DOM Elements
+        const apiKeyInput = document.getElementById('apiKey');
+        const toggleKeyVisibility = document.getElementById('toggleKeyVisibility');
+        const apiStatus = document.getElementById('apiStatus');
+        const validateApiKeyBtn = document.getElementById('validateApiKey');
+        const basicPrompt = document.getElementById('basicPrompt');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const questionsSection = document.getElementById('questionsSection');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const validationMessage = document.getElementById('validationMessage');
+        const validationText = document.getElementById('validationText');
+        const generateJsonBtn = document.getElementById('generateJsonBtn');
+        const jsonOutputSection = document.getElementById('jsonOutputSection');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const copyJsonBtn = document.getElementById('copyJsonBtn');
+        const regenerateJsonBtn = document.getElementById('regenerateJsonBtn');
+        const appPreview = document.getElementById('appPreview');
+
+        // Event Listeners
+        toggleKeyVisibility.addEventListener('click', toggleKeyVisibilityHandler);
+        validateApiKeyBtn.addEventListener('click', validateApiKey);
+        analyzeBtn.addEventListener('click', analyzePrompt);
+        generateJsonBtn.addEventListener('click', generateJSON);
+        copyJsonBtn.addEventListener('click', copyJSON);
+        regenerateJsonBtn.addEventListener('click', regenerateJSON);
+
+        // Initialize with default API key
+        updateApiStatus('active');
+
+        function toggleKeyVisibilityHandler() {
+            const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            apiKeyInput.setAttribute('type', type);
+            toggleKeyVisibility.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        }
+
+        function validateApiKey() {
+            const key = apiKeyInput.value.trim();
+            
+            if (!key) {
+                updateApiStatus('inactive');
+                return;
+            }
+
+            // Simulate API validation (in a real app, this would call an actual API)
+            analyzeBtn.disabled = true;
+            validateApiKeyBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validating...';
+            
+            setTimeout(() => {
+                // Simulate different validation results based on key pattern
+                if (key.startsWith('sk-') && key.length > 20) {
+                    if (key.includes('limit')) {
+                        updateApiStatus('limit');
+                    } else {
+                        updateApiStatus('active');
+                    }
+                } else {
+                    updateApiStatus('inactive');
+                }
+                
+                validateApiKeyBtn.innerHTML = 'Validate Key';
+            }, 1500);
+        }
+
+        function updateApiStatus(status) {
+            apiKeyStatus = status;
+            
+            // Update status display
+            apiStatus.className = 'px-4 py-2 rounded-full text-white font-medium mb-2';
+            
+            switch(status) {
+                case 'active':
+                    apiStatus.classList.add('api-status-active', 'pulse');
+                    apiStatus.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Active';
+                    analyzeBtn.disabled = false;
+                    break;
+                case 'inactive':
+                    apiStatus.classList.add('api-status-inactive');
+                    apiStatus.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Invalid Key';
+                    analyzeBtn.disabled = true;
+                    break;
+                case 'limit':
+                    apiStatus.classList.add('api-status-limit');
+                    apiStatus.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Daily Limit Reached';
+                    analyzeBtn.disabled = true;
+                    break;
+            }
+        }
+
+        function analyzePrompt() {
+            const prompt = basicPrompt.value.trim();
+            if (!prompt) {
+                showValidationMessage('Please enter a basic prompt first!');
+                return;
+            }
+
+            if (apiKeyStatus !== 'active') {
+                showValidationMessage('Please validate your API key first!');
+                return;
+            }
+
+            currentAnswers = { basic_prompt: prompt };
+            showQuestions();
+        }
+
+        function showQuestions() {
+            questionsSection.classList.remove('hidden');
+            questionsContainer.innerHTML = '';
+            hideValidationMessage();
+
+            // Show all questions from different categories
+            const allQuestions = [
+                ...questionTemplates.general,
+                ...questionTemplates.technical,
+                ...questionTemplates.design
+            ];
+
+            allQuestions.forEach((q, index) => {
+                const questionElement = createQuestionElement(q, index);
+                questionsContainer.appendChild(questionElement);
+            });
+
+            generateJsonBtn.classList.remove('hidden');
+        }
+
+        function createQuestionElement(question, index) {
+            const div = document.createElement('div');
+            div.className = 'bg-white/5 rounded-xl p-6 fade-in';
+            div.style.animationDelay = `${index * 0.1}s`;
+
+            let inputHtml = '';
+
+            switch (question.type) {
+                case 'select':
+                    inputHtml = `
+                        <select class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white/50" 
+                                data-id="${question.id}">
+                            <option value="">Select an option</option>
+                            ${question.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                    break;
+                case 'multiselect':
+                    inputHtml = `
+                        <div class="space-y-2" data-id="${question.id}">
+                            ${question.options.map(opt => `
+                                <label class="flex items-center space-x-3 text-white/80">
+                                    <input type="checkbox" value="${opt}" class="rounded bg-white/10 border-white/20 text-purple-500 focus:ring-purple-500">
+                                    <span>${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                case 'textarea':
+                    inputHtml = `
+                        <textarea class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-white/50" 
+                                  placeholder="${question.placeholder}" 
+                                  data-id="${question.id}"></textarea>
+                    `;
+                    break;
+                default:
+                    inputHtml = `
+                        <input type="text" 
+                               class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50" 
+                               placeholder="${question.placeholder}" 
+                               data-id="${question.id}">
+                    `;
+            }
+
+            div.innerHTML = `
+                <h3 class="text-lg font-semibold text-white mb-3">${question.question}</h3>
+                ${inputHtml}
+                ${question.required ? '<p class="text-red-300 text-sm mt-2">* Required</p>' : ''}
+            `;
+
+            return div;
+        }
+
+        function collectAnswers() {
+            const inputs = questionsContainer.querySelectorAll('[data-id]');
+            inputs.forEach(input => {
+                const id = input.getAttribute('data-id');
+                
+                if (input.tagName === 'SELECT') {
+                    currentAnswers[id] = input.value;
+                } else if (input.tagName === 'TEXTAREA' || input.tagName === 'INPUT') {
+                    if (input.type === 'text') {
+                        currentAnswers[id] = input.value;
+                    } else if (input.type === 'textarea') {
+                        currentAnswers[id] = input.value;
+                    }
+                } else if (input.classList.contains('space-y-2')) {
+                    // Multiselect container
+                    const checked = input.querySelectorAll('input:checked');
+                    currentAnswers[id] = Array.from(checked).map(cb => cb.value);
+                }
+            });
+
+            // Validate required fields
+            const requiredQuestions = [
+                ...questionTemplates.general,
+                ...questionTemplates.technical,
+                ...questionTemplates.design
+            ].filter(q => q.required);
+
+            for (const q of requiredQuestions) {
+                if (!currentAnswers[q.id] || 
+                    (Array.isArray(currentAnswers[q.id]) && currentAnswers[q.id].length === 0) ||
+                    currentAnswers[q.id] === '') {
+                    showValidationMessage(`Please answer the required question: ${q.question}`);
+                    // Scroll to the question
+                    const questionElement = questionsContainer.querySelector(`[data-id="${q.id}"]`).closest('.bg-white\\/5');
+                    questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Highlight the question
+                    questionElement.classList.add('ring-2', 'ring-red-400');
+                    setTimeout(() => {
+                        questionElement.classList.remove('ring-2', 'ring-red-400');
+                    }, 3000);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function generateJSON() {
+            if (!collectAnswers()) return;
+
+            // Simulate API call to generate JSON
+            generateJsonBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            generateJsonBtn.disabled = true;
+
+            setTimeout(() => {
+                const optimizedPrompt = {
+                    application: {
+                        name: "Generated from user prompt",
+                        type: currentAnswers.app_type,
+                        description: currentAnswers.basic_prompt,
+                        target_audience: currentAnswers.target_users,
+                        complexity_level: currentAnswers.complexity
+                    },
+                    features: {
+                        core_functionality: typeof currentAnswers.key_features === 'string' 
+                            ? currentAnswers.key_features.split(',').map(f => f.trim()) 
+                            : currentAnswers.key_features,
+                        authentication: currentAnswers.authentication,
+                        data_requirements: currentAnswers.data_storage,
+                        real_time_features: currentAnswers.key_features && 
+                            currentAnswers.key_features.toLowerCase().includes('real-time') ? true : false
+                    },
+                    technical_specifications: {
+                        preferred_tech_stack: currentAnswers.tech_stack || [],
+                        platform: currentAnswers.app_type,
+                        ui_ux_requirements: {
+                            style: currentAnswers.ui_style,
+                            theme_preference: currentAnswers.ui_style && 
+                                currentAnswers.ui_style.toLowerCase().includes('dark') ? 'dark' : 'light'
+                        }
+                    },
+                    development_guidelines: {
+                        code_structure: "Modular and scalable",
+                        api_design: "RESTful or GraphQL based on requirements",
+                        database_design: "Normalized schema with proper indexing",
+                        security_measures: ["Input validation", "Secure authentication", "Data encryption"]
+                    },
+                    deployment: {
+                        environment: "Cloud-based (AWS, GCP, or Azure)",
+                        scaling_strategy: "Horizontal scaling with load balancing",
+                        monitoring: "Application performance monitoring and error tracking"
+                    }
+                };
+
+                // Format and display JSON
+                jsonOutput.textContent = JSON.stringify(optimizedPrompt, null, 2);
+                jsonOutputSection.classList.remove('hidden');
+
+                // Generate app preview
+                generateAppPreview(optimizedPrompt);
+
+                generateJsonBtn.innerHTML = '<i class="fas fa-code mr-2"></i>Generate JSON Prompt';
+                generateJsonBtn.disabled = false;
+            }, 2000);
+        }
+
+        function regenerateJSON() {
+            // In a real app, this would call the AI API again with the same parameters
+            // For this demo, we'll just add a "regenerated" timestamp
+            const currentJson = JSON.parse(jsonOutput.textContent);
+            currentJson.regenerated_at = new Date().toISOString();
+            jsonOutput.textContent = JSON.stringify(currentJson, null, 2);
+            
+            // Show a brief notification
+            const originalText = regenerateJsonBtn.innerHTML;
+            regenerateJsonBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Regenerated!';
+            setTimeout(() => {
+                regenerateJsonBtn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        function generateAppPreview(prompt) {
+            const features = prompt.features.core_functionality;
+            const techStack = prompt.technical_specifications.preferred_tech_stack.join(', ') || 'Standard web technologies';
+            
+            appPreview.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-3">App Overview</h4>
+                        <ul class="space-y-2 text-white/80">
+                            <li><strong>Type:</strong> ${prompt.application.type}</li>
+                            <li><strong>For:</strong> ${prompt.application.target_audience}</li>
+                            <li><strong>Complexity:</strong> ${prompt.application.complexity_level}</li>
+                            <li><strong>Auth:</strong> ${prompt.features.authentication}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-3">Key Features</h4>
+                        <ul class="list-disc list-inside space-y-1 text-white/80">
+                            ${Array.isArray(features) 
+                                ? features.map(feature => `<li>${feature}</li>`).join('') 
+                                : `<li>${features}</li>`}
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-white/5 rounded-lg">
+                    <h4 class="font-semibold mb-2">Recommended Tech Stack</h4>
+                    <p class="text-white/80">${techStack}</p>
+                </div>
+            `;
+        }
+
+        function copyJSON() {
+            const text = jsonOutput.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyJsonBtn.innerHTML;
+                copyJsonBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+                setTimeout(() => {
+                    copyJsonBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        function showValidationMessage(message) {
+            validationText.textContent = message;
+            validationMessage.classList.remove('hidden');
+        }
+
+        function hideValidationMessage() {
+            validationMessage.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
