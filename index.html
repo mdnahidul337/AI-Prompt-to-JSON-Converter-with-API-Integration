@@ -174,7 +174,7 @@
                     id: 'app_type',
                     question: 'What type of application are you building?',
                     type: 'select',
-                    options: ['Web App', 'Mobile App', 'Desktop App', 'API Service', 'Chrome Extension', 'Other'],
+                    options: ['Website', 'Web App', 'Mobile App', 'Desktop App', 'API Service', 'Chrome Extension', 'Other'],
                     required: true
                 },
                 {
@@ -197,7 +197,7 @@
                     id: 'tech_stack',
                     question: 'Preferred technology stack?',
                     type: 'multiselect',
-                    options: ['React', 'Vue', 'Angular', 'Node.js', 'Python', 'React Native', 'Flutter', 'Firebase', 'MongoDB', 'PostgreSQL'],
+                    options: ['Bootstrap 5 (Latest)', 'React', 'Vue', 'Angular', 'Node.js', 'Python', 'React Native', 'Flutter', 'Firebase', 'MongoDB', 'PostgreSQL'],
                     required: false
                 },
                 {
@@ -492,20 +492,36 @@
                         ui_ux_requirements: {
                             style: currentAnswers.ui_style,
                             theme_preference: currentAnswers.ui_style && 
-                                currentAnswers.ui_style.toLowerCase().includes('dark') ? 'dark' : 'light'
+                                currentAnswers.ui_style.toLowerCase().includes('dark') ? 'dark' : 'light',
+                            framework_specific: currentAnswers.tech_stack && 
+                                currentAnswers.tech_stack.includes('Bootstrap 5 (Latest)') ? 
+                                'Responsive design with Bootstrap 5 components' : 'Standard UI components'
                         }
                     },
                     development_guidelines: {
                         code_structure: "Modular and scalable",
+                        frontend_approach: currentAnswers.tech_stack && 
+                            currentAnswers.tech_stack.includes('Bootstrap 5 (Latest)') ?
+                            "Bootstrap 5 for responsive design with custom CSS as needed" :
+                            "Standard frontend framework approach",
                         api_design: "RESTful or GraphQL based on requirements",
                         database_design: "Normalized schema with proper indexing",
                         security_measures: ["Input validation", "Secure authentication", "Data encryption"]
                     },
                     deployment: {
                         environment: "Cloud-based (AWS, GCP, or Azure)",
+                        hosting_type: currentAnswers.app_type === 'Website' ? 
+                            "Static site hosting (Netlify, Vercel, GitHub Pages)" : 
+                            "Cloud hosting with auto-scaling",
                         scaling_strategy: "Horizontal scaling with load balancing",
                         monitoring: "Application performance monitoring and error tracking"
-                    }
+                    },
+                    bootstrap_specific: currentAnswers.tech_stack && 
+                        currentAnswers.tech_stack.includes('Bootstrap 5 (Latest)') ? {
+                            version: "5.3.0+ (Latest)",
+                            features: ["Responsive grid system", "Pre-built components", "Custom theming"],
+                            dependencies: ["Bootstrap CSS & JS", "Popper.js (for tooltips/popovers)"]
+                        } : null
                 };
 
                 // Format and display JSON
@@ -537,8 +553,23 @@
 
         function generateAppPreview(prompt) {
             const features = prompt.features.core_functionality;
-            const techStack = prompt.technical_specifications.preferred_tech_stack.join(', ') || 'Standard web technologies';
+            let techStack = prompt.technical_specifications.preferred_tech_stack.join(', ') || 'Standard web technologies';
             
+            // Add Bootstrap-specific info if selected
+            if (prompt.technical_specifications.preferred_tech_stack.includes('Bootstrap 5 (Latest)')) {
+                techStack = 'Bootstrap 5 (Latest) + ' + techStack.replace('Bootstrap 5 (Latest), ', '').replace('Bootstrap 5 (Latest)', '');
+            }
+            
+            let appTypeSpecificInfo = '';
+            if (prompt.application.type === 'Website') {
+                appTypeSpecificInfo = `
+                    <div class="mt-4 p-4 bg-blue-500/20 rounded-lg">
+                        <h5 class="font-semibold mb-2"><i class="fas fa-globe mr-2"></i>Website Specific</h5>
+                        <p class="text-white/80">Recommended: Static site hosting with CDN for optimal performance</p>
+                    </div>
+                `;
+            }
+
             appPreview.innerHTML = `
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
@@ -562,7 +593,16 @@
                 <div class="mt-6 p-4 bg-white/5 rounded-lg">
                     <h4 class="font-semibold mb-2">Recommended Tech Stack</h4>
                     <p class="text-white/80">${techStack}</p>
+                    ${prompt.bootstrap_specific ? `
+                        <div class="mt-3 p-3 bg-green-500/10 rounded">
+                            <p class="text-green-300 text-sm">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Bootstrap 5 will be used for responsive design and pre-built components
+                            </p>
+                        </div>
+                    ` : ''}
                 </div>
+                ${appTypeSpecificInfo}
             `;
         }
 
